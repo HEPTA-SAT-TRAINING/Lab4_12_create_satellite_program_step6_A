@@ -4,9 +4,10 @@ HeptaCdh    cdh;
 HeptaEps    eps;
 HeptaSensor sensor;
 
-// Two separate thresholds prevent chattering when voltage hovers near the boundary
-const float VOLTAGE_TURN_OFF = 3.7;
-const float VOLTAGE_TURN_ON  = 3.9;
+// Bus-voltage thresholds for the 3V3 load switch (V4.1.1 get_bus_voltage).
+// Hysteresis avoids chatter; validate on hardware if bus behaviour differs from old VBAT.
+const float BUS_VOLTAGE_TURN_OFF = 3.7;
+const float BUS_VOLTAGE_TURN_ON  = 3.9;
 
 const float temperature = 25.0; // Temperature in degrees Celsius
 bool sw3V3_is_on = true;
@@ -19,19 +20,19 @@ void setup() {
 }
 
 void loop() {
-  float battery_voltage = eps.get_battery_voltage();
+  float bus_voltage = eps.get_bus_voltage();
   cdh.println("------------------------------");
   cdh.printf("Satellite Time: %.2f seconds\n", millis() / 1000.0); // Print time in seconds
-  cdh.printf("Battery Voltage: %.2f V\n", battery_voltage);
+  cdh.printf("Bus voltage: %.2f V\n", bus_voltage);
   cdh.printf("Temperature: %.2f °C\n", temperature);
   cdh.println("------------------------------");
 
-  if (sw3V3_is_on && battery_voltage < VOLTAGE_TURN_OFF) {
-    cdh.println("Battery voltage is low! Switching off 3.3V SW to save power.");
+  if (sw3V3_is_on && bus_voltage < BUS_VOLTAGE_TURN_OFF) {
+    cdh.println("Bus voltage is low! Switching off 3.3V SW to save power.");
     eps.switch_3V3_off();
     sw3V3_is_on = false;
-  } else if (!sw3V3_is_on && battery_voltage > VOLTAGE_TURN_ON) {
-    cdh.println("Battery voltage recovered. Switching on 3.3V SW.");
+  } else if (!sw3V3_is_on && bus_voltage > BUS_VOLTAGE_TURN_ON) {
+    cdh.println("Bus voltage recovered. Switching on 3.3V SW.");
     eps.switch_3V3_on();
     sw3V3_is_on = true;
   } else {
@@ -59,8 +60,8 @@ void loop() {
           File file = cdh.create_file("test.txt");
           if (file) {
             for(uint8_t i = 0; i < 10; i++) {
-              float battery_voltage = eps.get_battery_voltage();
-              cdh.printf_file(file, "Battery Voltage: %f V\r\n", battery_voltage);
+              float bus_voltage = eps.get_bus_voltage();
+              cdh.printf_file(file, "Bus voltage: %f V\r\n", bus_voltage);
               delay(1000);
             }
             file.close();
