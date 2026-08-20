@@ -5,9 +5,10 @@ HeptaEps    eps;
 HeptaSensor sensor;
 
 // Bus-voltage thresholds for the 3V3 load switch (V4.1.1 get_bus_voltage).
-// Hysteresis avoids chatter; validate on hardware if bus behaviour differs from old VBAT.
-const float BUS_VOLTAGE_TURN_OFF = 3.7;
-const float BUS_VOLTAGE_TURN_ON  = 3.9;
+// Hysteresis avoids chatter near the boundary; validate on hardware if the
+// SAT_POWER / bus rail behaviour differs from the old VBAT curve.
+const float BUS_VOLTAGE_TURN_OFF = 3.5;
+const float BUS_VOLTAGE_TURN_ON  = 3.7;
 
 const float temperature = 25.0; // Temperature in degrees Celsius
 bool sw3V3_is_on = true;
